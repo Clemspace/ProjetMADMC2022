@@ -23,7 +23,10 @@ class NDTree(object):
             if updated:
                 self.root.Insert(candidate)
             return updated
-        
+    
+    def getSolutions(self):
+        return self.root.getSolutions()
+    
     def getPoints(self):
         return self.root.getPoints()
     
@@ -104,7 +107,14 @@ class Node(object):
           
             
     def getSolutions(self):
-        return self.points.keys()
+        if self.isLeaf():
+            return set(self.points.keys())
+        else:
+            res = set()
+            for child in self.children:
+            
+                res.union(child.getSolutions())
+        return res
     
     def getEvaluations(self):
         return list(self.points.values())
