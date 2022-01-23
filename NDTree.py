@@ -172,9 +172,9 @@ class Node(object):
         if not self.isLeaf():
             for child in self.children:
                 child.delete_subtree()
-        else:
-            #del self.points
-            pass
+        if self.isLeaf():
+            self.points =dict()
+            return True
         if not self.isRoot():
             self.parent.children.remove(self)#hmm à méditer
         self.parent = None
