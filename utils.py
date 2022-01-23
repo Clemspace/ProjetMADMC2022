@@ -83,8 +83,6 @@ def averageDistance(nd_points, potential_nd_points):
     return (1/len(nd_points))*distances.sum()
 
 
-
-
 def solutionTotalWeight(solution, objects):
     sum = 0
     for i, sol in enumerate(solution):
@@ -126,6 +124,14 @@ def generatePop(objects, max_weight, verbose=False):
     return solution
 
 
+def evaluate_solution(solution, objects, capacity, with_capacity=False):
+    evaluation = np.matmul(solution.T, objects)
+
+    # retourne solution + sa validité
+    if with_capacity:
+        return evaluation[0] <= capacity, evaluation
+    else:
+        return evaluation[0] <= capacity, evaluation[1:]
 
 
 def normarlizedRandomWeights(p):
@@ -138,8 +144,7 @@ def normarlizedRandomWeights(p):
 
 def evaluate_WeightedSum(x, weights):
     """Retourne l'evaluation d'un objet en fonction des poids donnés par le décideur"""
-    
-    return np.dot(weights, x)
+    return np.dot(x, weights)
 
 
 def getBestAlternative(X, weights):
