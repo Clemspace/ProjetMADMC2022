@@ -24,7 +24,10 @@ class NDTree(object):
             if updated:
                 n.insert(candidate)
             return updated
-
+        
+    def getPoints(self):
+        return self.root.getPoints()
+        
 class Node(object):
         
     def __init__(self, nbDims, solution, maxNodeSize,children = [], parent = None, numberOfSplits = 2):
@@ -41,7 +44,7 @@ class Node(object):
     def removePoint(self, point):
         r = dict(self.points)
         del r[point.key()]
-        self.Points = r
+        self.points = r
         
         
     def distance(self, candidate):
@@ -64,11 +67,36 @@ class Node(object):
          
     def findMostIsolatedPoint(self):
         
-        for i in self.points.items():
-            avgdist  = sum(dist(i.value(),j.value()) for j in self.points.items())/len(self.points)-1
-            
         
-        return z
+        if len(self.points()) == 1:
+            
+            return self.points.items()[0]
+        else:
+            z = None
+            maxAvgDist = 0
+
+            
+            
+            for i,j in self.points.items():
+                
+                cpt = 0
+                dist = 0
+                for k,l in self.points.items():
+                    
+                    if i == k:
+                        
+                        continue
+                    
+                    else:
+                        cpt+=1
+                        dist+= math.dist(j,l)
+                        
+                if maxAvgDist < dist :
+                    maxAvgDist = dist
+                    z = i
+                        
+                    
+            return z
           
             
     def getSolutions(self):
@@ -112,7 +140,16 @@ class Node(object):
         for child in self.children:
                 size+= child.getSizeSubtree()
         return size
-        
+    
+    def getPoints(self):
+        if self.isLeaf():
+            return self.points
+        else:
+            res = dict()
+            for child in self.children:
+            
+             res = {**res, **child.getPoints()}
+        return res
     
     def delete_subtree(self):
         self.children.clear()
@@ -160,7 +197,7 @@ class Node(object):
             #dans ce cas on supprime n et tous ses sous arbres #TODO
             self.deleteNode()
         
-        elif Dominates(self.approxIdeal,candidate.value()) or dominates(candidate.value(), self.approxNadir):
+        elif Dominates(self.approxIdeal,candidate.value()) or Dominates(candidate.value(), self.approxNadir):
             #si le candidat est dominé par l'idéal et domine le point nadir
             
             if self.isLeaf():
@@ -229,4 +266,6 @@ def Dominates(point, candidate):
 
 def StrictlyDominates(point, candidate):
     return sum([point[x] > candidate[x] for x in range(len(point))]) == len(point) 
-    
+
+def arraytoString(array):
+    return ''.join(array)
