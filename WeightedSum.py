@@ -2,37 +2,8 @@ from gurobipy import *
 import numpy as np
 import utils as utils
 import time
+import matplotlib.pyplot as plt
 
-
-def LP_WeightedSum(pb_dict, liste_poids, verbose=False):
-    
-    m = Model("PL Somme Ponderee")     
-    
-    # Declaration variables de decision
-    x = []
-    for i in range(pb_dict["n"]):
-        x.append(m.addVar(vtype=GRB.BINARY, lb=0, ub=1, name="x"+str(i+1)))
-    
-    #x = np.array(x_temp)
-
-    # maj du modele pour integrer les nouvelles variables
-    m.update()
-    
-    obj = LinExpr();
-    obj = quicksum(pb_dict["item_weights"][i]*x[i] for i in range(pb_dict["n"]))
-            
-    # Definition de l'objectif
-    m.setObjective(obj, GRB.MAXIMIZE)
-    
-    # Definition des contraintes  
-    m.addConstr(quicksum(pb_dict["item_weights"][i]*x[i] for i in range(pb_dict["n"])) <= pb_dict["max_weight"], "Contrainte%d" % (1))
-    
-    # Resolution
-    m.optimize()
-    
-    return getLPResult(m, x, pb_dict["n"], verbose)
-    
-    
     
 def getLPResult(m, x, n, verbose=False):
     if(verbose):
@@ -163,11 +134,16 @@ def incrementalElicitation_WeightedSum(X, p, delta, PMR_function=PMR_WeightedSum
     best_alternative = utils.getBestAlternative(X, dm) #index + value of alternative
     
     prefs = []
-    nb_questions = 1
+    nb_questions = 0
+    
+    MMRs_evolution = []
+    nb_questions_evolution = []
     
     #do-while
     while(True):
         mmr_value, x, y = MMR(X, prefs, PMR_function)
+        nb_questions_evolution.append(nb_questions)
+        MMRs_evolution.append(mmr_value)
         nb_questions += 1
         
         #ask a question
@@ -184,31 +160,51 @@ def incrementalElicitation_WeightedSum(X, p, delta, PMR_function=PMR_WeightedSum
         
         #print("regret between real opt alternative and current x : ", trueRegret(dm, best_alternative, x))
     
-    ending_time = time.time()-start_time
+    duration_time = time.time()-start_time
     
-    return x, best_alternative, utils.evaluate_WeightedSum(x, dm), nb_questions, ending_time
+    return x, best_alternative, utils.evaluate_WeightedSum(x, dm), nb_questions, duration_time, nb_questions_evolution, MMRs_evolution
 
+
+def simulateIncrElicitation(n_min, n_step, n_max, p):
+    """
+    Génère des problèmes avec de plus en plus d'objets et retourne le nombre de questions
+    posés pour chaque problème
+    """
+    utils.generateInstance(n, p)
+    current_n = n_min
+    nb_questions = []
+    nb_questions.append(incrementalElicitation_WeightedSum(X, p, delta, PMR_WeightedSum)[3])
 
 if __name__ == '__main__':
 
     file_path = "2KP200-TA-0.dat"
     (capacity, nb_objects, objects) = utils.read_from_file(file_path)
     
-    #faire PLS
+    nb_ite = 5
     
-    #simuation de solutions potentiellement pareto-opt () 
-    nb_sols = 100
-    X = {} 
-    for i in range(nb_sols):
-        generated_sol = utils.generatePop(objects, capacity)
-        X[repr(generated_sol)] = utils.evaluate_solution(generated_sol, objects, capacity, with_capacity=False)[1] #[0] = si solution est admissible ou non
+    for i in range(nb_ite):
+        #simuation de solutions potentiellement pareto-opt avec des solutions admissibles générées aléatoirement
+        nb_sols = 20
+        X = {} 
+        for i in range(nb_sols):
+            generated_sol = utils.generatePop(objects, capacity)
+            X[repr(generated_sol)] = utils.evaluate_solution(generated_sol, objects, capacity, with_capacity=False)[1] #[0] = si solution est admissible ou non
+        
+        p = len(objects[0])-1 #nb criteres
+        delta = 0.1 #param pour la condition d'arrêt de l'élicitation
+        
+        #print(utils.evaluate_solution(generated_sol, objects, capacity, with_capacity=False))
+        
+        incrElicitation = incrementalElicitation_WeightedSum(X, p, delta, PMR_WeightedSum)
+        
+        
+        plt.plot(incrElicitation[-2], incrElicitation[-1])
     
-    p = len(objects[0])-1 #nb criteres
-    delta = 0.1 #param pour la condition d'arrêt de l'élicitation
-    
-    #print(utils.evaluate_solution(generated_sol, objects, capacity, with_capacity=False))
-    
-    print(incrementalElicitation_WeightedSum(X, p, delta, PMR_WeightedSum))
+    plt.title("Evolution du minimaxRegret en fonction du nombre de questions posées")
+    plt.xlabel('Nombre de questions')
+    plt.ylabel('Valeur de MMR')
+    plt.legend()
+    plt.show() 
         
 
 

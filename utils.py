@@ -40,17 +40,6 @@ def readNotDominatedPoints(path):
 
     return np.array(allPoints)
 
-def notDominated(path):
-
-	with open(path, 'r') as f:
-		allLines = f.readlines()
-
-	allPoints = []
-	for line in allLines:
-		allPoints.append( list(map(int, line.rstrip().split("\t"))) )
-
-	return np.array(allPoints)
-
 
 def proportionNotDominated(nd_points, potential_nd_points):
     nd_points_set = set(list(map(tuple, nd_points)))
@@ -167,3 +156,30 @@ def dominate_WeightedSum(x, y, weights):
         fy += weights[i]*y[i]
         
     return fx>fy
+
+
+def generateInstance(n, p):
+    """
+    Génère une instance d'un problème avec n objets et p criteres
+    """
+    objects = []
+    capacity = -1
+    
+    if(n > 0 and p > 0):
+        for i in range(n):
+            objects.append(np.array([0]*(p+1)))
+            for j in range(p+1):
+                objects[i][j] = rand.randint(1, 999)
+                
+        objects = np.array(objects)
+        capacity = np.sum(objects[:, 0])/2
+        
+    return capacity, objects
+
+def plot_objective_space(points, points2):
+    x, y = [i[0] for i in points], [j[1] for j in points]
+    x2, y2 = [int(i[0]) for i in points2], [int(j[1]) for j in points2]
+    plt.scatter(x, y, c='red')
+    plt.scatter(x2, y2, c='blue')
+    plt.show()
+
