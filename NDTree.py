@@ -7,7 +7,7 @@ from math import dist
 
 class NDTree(object):
 
-    def __init__(self, nbDims, maxNodeSize = 20, root=None, nodes=[], numberOfSplits = 2):
+    def __init__(self, nbDims, maxNodeSize = 30, root=None, nodes=[], numberOfSplits = 4):
         self.root = root
         self.nodes = nodes
         self.nbDims = nbDims
@@ -195,7 +195,7 @@ class Node(object):
                 self.approxNadir[i] = candi[i]
                 changed = True
         if changed: #si il y a eu maj et qu'on est pas à la racine, on propage au parent
-            if self.parent is not None: 
+            if  not self.isRoot(): 
                 UpdateIdealNadir(self.parent, candidate)
         
         return changed
@@ -212,7 +212,7 @@ class Node(object):
             else:
                 return False
             
-            if len(self.points) > self.maxNodeSize: #si le noeud contient trop de valeurs:
+            if len(self.points) >= self.maxNodeSize: #si le noeud contient trop de valeurs:
                 self.Split()
             return True
         else:
@@ -237,14 +237,14 @@ class Node(object):
                 for point in self.Points.items():
                     if Dominates(point.value(),candi):
                         return False
-                    if strictlyDominates(candi,point):
+                    elif StrictlyDominates(candi,point):
                         self.removePoint(point)
             else:
                 for child in self.children:
                     if not child.UpdateNode():
                         return False
                     else:
-                        if child.getSizeSubtree() == 0:
+                        if child.isEmpty():
                             child.delete_subtree()
                 if len(self.children) == 1:
                    #remplace le noeud par son seul fils
@@ -253,7 +253,7 @@ class Node(object):
                     self.parent.children.remove(self)
         else:
             #propriété 3
-            pass
+            
         return True
         
     def Property1(self, candidate):
@@ -279,6 +279,7 @@ class Node(object):
             newChild = Node(nbDims = self.nbDims, solution = z, maxNodeSize = self.maxNodeSize, numberOfSplits = self.numberOfSplits, parent = self)
             self.addChild(newChild)
             self.removePoint(z)
+            print(ici)
             splits+=1
             
         while len(self.points) > 0:
@@ -295,7 +296,7 @@ def avg_distance(point, others):
     return dist/len(others)
 
 def Dominates(point, candidate):
-    return sum([point[x] >= candidate[x] for x in range(len(point))]) == len(point) 
+    return sum([point[x] >= candidate[x] for x in range(len(point))]) == len(point) and sum([point[x] == candidate[x] for x in range(len(point))]) != len(point)
 
 def StrictlyDominates(point, candidate):
     return sum([point[x] > candidate[x] for x in range(len(point))]) == len(point) 
