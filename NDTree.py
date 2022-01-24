@@ -7,7 +7,7 @@ from math import dist
 
 class NDTree(object):
 
-    def __init__(self, nbDims, maxNodeSize = 30, root=None, nodes=[], numberOfSplits = 4):
+    def __init__(self, nbDims, maxNodeSize = 2, root=None, nodes=[], numberOfSplits = 2):
         self.root = root
         self.nodes = nodes
         self.nbDims = nbDims
@@ -253,7 +253,7 @@ class Node(object):
                     self.parent.children.remove(self)
         else:
             #propriété 3
-            
+            pass
         return True
         
     def Property1(self, candidate):
@@ -269,7 +269,6 @@ class Node(object):
     def Split(self):
         splits = 0        
         z = self.findMostIsolatedPoint()
-        print(z)
         newChild = Node(nbDims = self.nbDims, solution = z, maxNodeSize = self.maxNodeSize, numberOfSplits = self.numberOfSplits, parent = self)
         self.removePoint(z)
         splits+=1
