@@ -31,7 +31,10 @@ class NDTree(object):
         return self.root.getPoints()
     
     def getSize(self):
-        return self.root.getSizeSubtree()
+        if self.root is not None:
+            return self.root.getSizeSubtree()
+        else:
+            return 0
         
 class Node(object):
         
@@ -150,7 +153,7 @@ class Node(object):
     def getSizeSubtree(self):
         
         if self.isLeaf():
-            return len(self.points.items())
+            return len(self.points)
         else:
             size = 0
             for child in self.children:
@@ -209,13 +212,13 @@ class Node(object):
             else:
                 return False
             
-            if len(self.points) >= self.maxNodeSize: #si le noeud contient trop de valeurs:
+            if len(self.points) > self.maxNodeSize: #si le noeud contient trop de valeurs:
                 self.Split()
             return True
         else:
             nprime = self.findClosestChild(candidate)
-            nprime.Insert(candidate)
-            return
+            return nprime.Insert(candidate)
+
             
     
     def UpdateNode(self, candidate):
@@ -234,7 +237,7 @@ class Node(object):
                 for point in self.Points.items():
                     if Dominates(point.value(),candi):
                         return False
-                    if StrictlyDominates(candi,point):
+                    if strictlyDominates(candi,point):
                         self.removePoint(point)
             else:
                 for child in self.children:
