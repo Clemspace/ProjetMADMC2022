@@ -7,7 +7,7 @@ from math import dist
 
 class NDTree(object):
 
-    def __init__(self, nbDims, maxNodeSize = 2, root=None, nodes=[], numberOfSplits = 2):
+    def __init__(self, nbDims, maxNodeSize = 20, root=None, nodes=[], numberOfSplits = 2):
         self.root = root
         self.nodes = nodes
         self.nbDims = nbDims
@@ -167,7 +167,7 @@ class Node(object):
             res = dict()
             for child in self.children:
             
-             res = {**res, **child.getPoints()}
+             res.update(child.getPoints())
         return res
     
     def deleteSubtree(self):
@@ -212,7 +212,7 @@ class Node(object):
             else:
                 return False
             
-            if len(self.points) >= self.maxNodeSize: #si le noeud contient trop de valeurs:
+            if len(self.points) > self.maxNodeSize: #si le noeud contient trop de valeurs:
                 self.Split()
             return True
         else:
